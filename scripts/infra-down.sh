@@ -18,7 +18,7 @@ fi
 
 cd terraform
 
-echo -e "${YELLOW}Destroying infrastructure...${NC}"
+echo -e "${YELLOW}Destroying infrastructure....${NC}"
 terraform destroy -auto-approve
 
 echo -e "\n${GREEN}=== Infrastructure Destroyed! ===${NC}"

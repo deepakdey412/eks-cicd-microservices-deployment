@@ -1,14 +1,21 @@
-# Microservices on Amazon EKS
+# EKS-CICD-Microservices-Deployment
 
 Production-ready microservices demonstrating service communication, automated CI/CD, and infrastructure as code on AWS.
 
 ## Quick Overview
 
 Two Spring Boot services on Amazon EKS:
+
 - **product-service**: Creates and manages products
 - **order-service**: Stores orders and serves web UI
 
 Both communicate internally via Kubernetes DNS and are exposed via AWS Application Load Balancer.
+
+## Quick Links
+
+- 📘 [Setup Guide (QUICKSTART.md)](QUICKSTART.md)
+- 📐 [Architecture & Flow (PROJECT_SUMMARY.md)](PROJECT_SUMMARY.md)
+- 🏗️ [Infrastructure Details (terraform/INFRASTRUCTURE.md)](terraform/INFRASTRUCTURE.md)
 
 ## Get Started
 
@@ -27,38 +34,6 @@ kubectl get ingress -n default
 # Open http://<ALB-DNS>/ in browser
 ```
 
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [QUICKSTART.md](QUICKSTART.md) | Step-by-step setup guide (15 minutes) |
-| [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | Architecture, flow, and how everything works |
-| [terraform/INFRASTRUCTURE.md](terraform/INFRASTRUCTURE.md) | Infrastructure details and Terraform usage |
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  GitHub Actions (CI/CD)                                     │
-│  ├─ Build: Maven → Docker → ECR                            │
-│  └─ Deploy: Helm → EKS                                      │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│  AWS Infrastructure (Terraform)                             │
-│  ├─ VPC: Public/Private Subnets, NAT Gateway                │
-│  ├─ EKS: Kubernetes 1.31, 2x t3.small nodes                │
-│  └─ ALB: Application Load Balancer + Controller             │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│  Kubernetes Workloads (Helm)                                │
-│  ├─ product-service: 2 replicas                             │
-│  ├─ order-service: 2 replicas                               │
-│  └─ Services: Internal DNS + ALB Ingress                    │
-└─────────────────────────────────────────────────────────────┘
-```
-
 ## Technology Stack
 
 **Backend**: Java 17, Spring Boot 3.2.5, Maven  
@@ -66,75 +41,23 @@ kubectl get ingress -n default
 **CI/CD**: GitHub Actions, Helm Charts  
 **Container**: Docker, Amazon ECR
 
-## Repository Structure
+## Architecture
 
-```
-.
-├── microservices/
-│   ├── product-service/      # Java Spring Boot app
-│   └── order-service/        # Java Spring Boot app
-├── terraform/                # Infrastructure as Code
-│   ├── vpc.tf               # Networking
-│   ├── eks.tf               # Kubernetes cluster
-│   └── INFRASTRUCTURE.md    # Detailed docs
-├── helm-chart/springboot/   # Kubernetes deployment template
-├── .github/workflows/       # CI/CD pipeline
-├── scripts/
-│   ├── infra-up.sh         # Deploy infrastructure
-│   ├── infra-down.sh       # Destroy infrastructure
-│   └── verify-infra.sh     # Verify deployment
-└── docs/
-    ├── QUICKSTART.md       # Setup guide
-    └── PROJECT_SUMMARY.md  # Architecture docs
-```
+## Output Screenshots
 
-## Key Features
+Step-by-step outputs captured while deploying and verifying this project (see `output-screenshots/`):
 
-✅ **Automated CI/CD**: Push code → auto-deploy  
-✅ **Service Communication**: Internal DNS + REST APIs  
-✅ **Auto-scaling**: HPA for pods, ASG for nodes  
-✅ **Load Balancing**: AWS ALB with path-based routing  
-✅ **Infrastructure as Code**: Complete Terraform setup  
-✅ **Production-ready**: Health checks, logging, monitoring
-
-## Common Commands
-
-### Infrastructure
-```bash
-./scripts/infra-up.sh         # Create infrastructure
-./scripts/verify-infra.sh     # Check status
-./scripts/infra-down.sh       # Destroy everything
-```
-
-### Kubernetes
-```bash
-kubectl get pods -n default                    # List pods
-kubectl logs <pod-name> -n default --tail=50   # View logs
-kubectl get ingress -n default                 # Get ALB URL
-helm list -n default                           # List releases
-```
-
-### Testing
-```bash
-ALB_URL=$(kubectl get ingress -n default -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')
-
-# Create item
-curl -X POST http://$ALB_URL/hello/create-item \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Laptop","description":"High performance","price":999}'
-
-# Get items
-curl http://$ALB_URL/api/items
-```
-
-## Prerequisites
-
-- AWS Account + CLI configured (`aws configure`)
-- kubectl installed
-- Terraform installed
-- GitHub repo with secrets:
-  - `AWS_ACCESS_KEY_ID`
-  - `AWS_SECRET_ACCESS_KEY`
+| Step | Screenshot                                                                     | Description                                       |
+| ---- | ------------------------------------------------------------------------------ | ------------------------------------------------- |
+| 1    | ![01-infra-up](output-screenshots/01-infra-up.png)                             | Running `infra-up.sh` to provision infrastructure |
+| 2    | ![02-verify-infra](output-screenshots/02-verify-infra.png)                     | Verifying infrastructure with `verify-infra.sh`   |
+| 3    | ![03-verify-nodes-pods-albc](output-screenshots/03-verify-nodes-pods-albc.png) | Verifying nodes, pods, and ALB controller         |
+| 4    | ![04-git-pushed](output-screenshots/04-git-pushed.png)                         | Pushing code to trigger CI/CD                     |
+| 5    | ![05-github-action](output-screenshots/05-github-action.png)                   | GitHub Actions pipeline running                   |
+| 6    | ![07-eks-cluster](output-screenshots/07-eks-cluster.png)                       | EKS cluster view                                  |
+| 7    | ![08-instance-node](output-screenshots/08-instance-node.png)                   | EC2 instance / node details                       |
+| 8    | ![09-pods-in-eks](output-screenshots/09-pods-in-eks.png)                       | Pods running inside EKS                           |
+| 9    | ![10-wroking-project](output-screenshots/10-wroking-project.png)               | Final working project in the browser              |
 
 ## Cleanup
 
@@ -149,11 +72,13 @@ Destroy all resources to avoid charges:
 ## Troubleshooting
 
 Run verification script:
+
 ```bash
 ./scripts/verify-infra.sh
 ```
 
 Common issues:
+
 - **Pods not starting**: Check logs with `kubectl logs <pod-name>`
 - **ALB not created**: Check ALB controller logs
 - **Can't connect**: Verify security groups and NAT Gateway
@@ -167,10 +92,8 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed troubleshooting.
 - **Infrastructure Issues**: See [terraform/INFRASTRUCTURE.md](terraform/INFRASTRUCTURE.md)
 - **Issues**: [GitHub Issues](https://github.com/deepakdey412/EKS-project/issues)
 
-## License
+## Contact
 
-MIT License - Open source and free to use.
+For any queries, feel free to DM me on LinkedIn: [linkedin.com/in/deepakdey](https://linkedin.com/in/deepakdey)
 
 ---
-
-**Quick Links**: [Setup Guide](QUICKSTART.md) • [Architecture](PROJECT_SUMMARY.md) • [Infrastructure](terraform/INFRASTRUCTURE.md)

@@ -43,21 +43,23 @@ kubectl get ingress -n default
 
 ## Architecture
 
+<img src="output-screenshots/00-requestflow.png" alt="request-flow" border="4" width="480" style="border:4px solid #ffffff;" />
+
 ## Output Screenshots
 
 Step-by-step outputs captured while deploying and verifying this project (see `output-screenshots/`):
 
-| Step | Screenshot                                                                     | Description                                       |
-| ---- | ------------------------------------------------------------------------------ | ------------------------------------------------- |
-| 1    | ![01-infra-up](output-screenshots/01-infra-up.png)                             | Running `infra-up.sh` to provision infrastructure |
-| 2    | ![02-verify-infra](output-screenshots/02-verify-infra.png)                     | Verifying infrastructure with `verify-infra.sh`   |
-| 3    | ![03-verify-nodes-pods-albc](output-screenshots/03-verify-nodes-pods-albc.png) | Verifying nodes, pods, and ALB controller         |
-| 4    | ![04-git-pushed](output-screenshots/04-git-pushed.png)                         | Pushing code to trigger CI/CD                     |
-| 5    | ![05-github-action](output-screenshots/05-github-action.png)                   | GitHub Actions pipeline running                   |
-| 6    | ![07-eks-cluster](output-screenshots/07-eks-cluster.png)                       | EKS cluster view                                  |
-| 7    | ![08-instance-node](output-screenshots/08-instance-node.png)                   | EC2 instance / node details                       |
-| 8    | ![09-pods-in-eks](output-screenshots/09-pods-in-eks.png)                       | Pods running inside EKS                           |
-| 9    | ![10-wroking-project](output-screenshots/10-wroking-project.png)               | Final working project in the browser              |
+| Step | Screenshot                                                                                                                                           | Description                                       |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 1    | <img src="output-screenshots/01-infra-up.png" alt="01-infra-up" border="4" width="480" style="border:4px solid #888;" />                             | Running `infra-up.sh` to provision infrastructure |
+| 2    | <img src="output-screenshots/02-verify-infra.png" alt="02-verify-infra" border="4" width="480" style="border:4px solid #888;" />                     | Verifying infrastructure with `verify-infra.sh`   |
+| 3    | <img src="output-screenshots/03-verify-nodes-pods-albc.png" alt="03-verify-nodes-pods-albc" border="4" width="480" style="border:4px solid #888;" /> | Verifying nodes, pods, and ALB controller         |
+| 4    | <img src="output-screenshots/04-git-pushed.png" alt="04-git-pushed" border="4" width="480" style="border:4px solid #888;" />                         | Pushing code to trigger CI/CD                     |
+| 5    | <img src="output-screenshots/05-github-action.png" alt="05-github-action" border="4" width="480" style="border:4px solid #888;" />                   | GitHub Actions pipeline running                   |
+| 6    | <img src="output-screenshots/07-eks-cluster.png" alt="07-eks-cluster" border="4" width="480" style="border:4px solid #888;" />                       | EKS cluster view                                  |
+| 7    | <img src="output-screenshots/08-instance-node.png" alt="08-instance-node" border="4" width="480" style="border:4px solid #888;" />                   | EC2 instance / node details                       |
+| 8    | <img src="output-screenshots/09-pods-in-eks.png" alt="09-pods-in-eks" border="4" width="480" style="border:4px solid #888;" />                       | Pods running inside EKS                           |
+| 9    | <img src="output-screenshots/10-wroking-project.png" alt="10-wroking-project" border="4" width="480" style="border:4px solid #888;" />               | Final working project in the browser              |
 
 ## Cleanup
 

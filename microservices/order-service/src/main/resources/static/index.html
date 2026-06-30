@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservices Item Management - EKS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .info-box {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .workflow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .workflow-step {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .workflow-arrow {
+            font-size: 2em;
+            color: #667eea;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .service-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .service-icon {
+            font-size: 3em;
+            margin-right: 15px;
+        }
+        
+        .service-title {
+            font-size: 1.8em;
+            color: #333;
+            font-weight: 700;
+        }
+        
+        .service-subtitle {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+        }
+        
+        .form-section h4 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-create {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        
+        .btn-create:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+        
+        .btn-fetch {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-fetch:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-view {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-view:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .items-display {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .item-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .item-card h5 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .item-card p {
+            color: #666;
+            font-size: 0.9em;
+            margin: 3px 0;
+        }
+        
+        .item-card .price {
+            color: #11998e;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+        
+        .response-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .response-box.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .response-box.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .response-box.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .response-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .response-content {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #555;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            gap: 15px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Microservices Item Management System</h1>
+            <p>ProductService ↔ OrderService Communication Demo on Amazon EKS</p>
+        </div>
+        
+        <div class="info-box">
+            <h3>📋 Architecture & Workflow</h3>
+            <div class="workflow">
+                <div class="workflow-step">🛍️ ProductService (HelloService)</div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step">Creates Item</div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step">📦 OrderService (ClientService)</div>
+                <div class="workflow-arrow">→</div>
+                <div class="workflow-step">Stores Item</div>
+            </div>
+            <ul style="list-style: none; padding: 20px 0;">
+                <li style="padding: 5px 0; color: #555;">✓ <strong>ProductService</strong> sends create requests to OrderService</li>
+                <li style="padding: 5px 0; color: #555;">✓ <strong>OrderService</strong> stores items in memory (ConcurrentHashMap)</li>
+                <li style="padding: 5px 0; color: #555;">✓ <strong>ProductService</strong> can fetch all items from OrderService</li>
+                <li style="padding: 5px 0; color: #555;">✓ Both services communicate internally via Kubernetes DNS</li>
+                <li style="padding: 5px 0; color: #555;">✓ External access through AWS Application Load Balancer</li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <!-- ProductService (HelloService) Card -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon">🛍️</div>
+                    <div>
+                        <div class="service-title">ProductService</div>
+                        <div class="service-subtitle">Creates items → Stores in OrderService</div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h4>Create New Product</h4>
+                    <div class="input-group">
+                        <label for="productName">Product Name:</label>
+                        <input type="text" id="productName" placeholder="e.g., Laptop" value="Laptop">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="productDesc">Description:</label>
+                        <input type="text" id="productDesc" placeholder="e.g., High performance laptop" value="High performance laptop">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="productPrice">Price ($):</label>
+                        <input type="number" id="productPrice" placeholder="e.g., 999.99" value="999.99" step="0.01">
+                    </div>
+                    
+                    <button class="btn btn-create" onclick="createItem()">
+                        ✨ Create Item in OrderService
+                    </button>
+                </div>
+                
+                <div class="form-section">
+                    <h4>Fetch Items from OrderService</h4>
+                    <button class="btn btn-fetch" onclick="fetchAllItems()">
+                        📋 Get All Items
+                    </button>
+                </div>
+                
+                <div id="productResponse" class="response-box">
+                    <div class="response-title">Response:</div>
+                    <div class="response-content" id="productResponseContent"></div>
+                </div>
+            </div>
+            
+            <!-- OrderService (ClientService) Card -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon">📦</div>
+                    <div>
+                        <div class="service-title">OrderService</div>
+                        <div class="service-subtitle">Stores & manages items</div>
+                    </div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="itemCount">0</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h4>View Stored Items</h4>
+                    <button class="btn btn-view" onclick="viewStoredItems()">
+                        👁️ View All Items
+                    </button>
+                    
+                    <div id="itemsList" class="items-display" style="display: none;">
+                        <!-- Items will be displayed here -->
+                    </div>
+                </div>
+                
+                <div id="orderResponse" class="response-box">
+                    <div class="response-title">Response:</div>
+                    <div class="response-content" id="orderResponseContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Create item via ProductService
+        async function createItem() {
+            const name = document.getElementById('productName').value;
+            const description = document.getElementById('productDesc').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            
+            const responseBox = document.getElementById('productResponse');
+            const responseContent = document.getElementById('productResponseContent');
+            
+            responseBox.className = 'response-box show';
+            responseContent.textContent = 'Creating item...';
+            
+            try {
+                const response = await fetch('/hello/create-item', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, price })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    responseBox.className = 'response-box show success';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                    updateItemCount();
+                } else {
+                    responseBox.className = 'response-box show error';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                responseBox.className = 'response-box show error';
+                responseContent.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        // Fetch all items via ProductService
+        async function fetchAllItems() {
+            const responseBox = document.getElementById('productResponse');
+            const responseContent = document.getElementById('productResponseContent');
+            
+            responseBox.className = 'response-box show';
+            responseContent.textContent = 'Fetching items from OrderService...';
+            
+            try {
+                const response = await fetch('/hello/items');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    responseBox.className = 'response-box show success';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    responseBox.className = 'response-box show error';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                responseBox.className = 'response-box show error';
+                responseContent.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        // View items directly from OrderService
+        async function viewStoredItems() {
+            const itemsList = document.getElementById('itemsList');
+            const responseBox = document.getElementById('orderResponse');
+            const responseContent = document.getElementById('orderResponseContent');
+            
+            responseBox.className = 'response-box show';
+            responseContent.textContent = 'Loading items...';
+            
+            try {
+                const response = await fetch('/api/items');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    responseBox.className = 'response-box show success';
+                    responseContent.textContent = `Found ${data.totalItems} items`;
+                    
+                    itemsList.style.display = 'block';
+                    itemsList.innerHTML = '';
+                    
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const itemCard = document.createElement('div');
+                            itemCard.className = 'item-card';
+                            itemCard.innerHTML = `
+                                <h5>📦 ${item.name}</h5>
+                                <p>${item.description}</p>
+                                <p class="price">$${item.price}</p>
+                                <p style="font-size: 0.8em; color: #999;">ID: ${item.id} | Created by: ${item.createdBy}</p>
+                            `;
+                            itemsList.appendChild(itemCard);
+                        });
+                    } else {
+                        itemsList.innerHTML = '<p style="text-align: center; color: #999;">No items found. Create some items first!</p>';
+                    }
+                    
+                    updateItemCount();
+                } else {
+                    responseBox.className = 'response-box show error';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                responseBox.className = 'response-box show error';
+                responseContent.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        // Update item count
+        async function updateItemCount() {
+            try {
+                const response = await fetch('/api/items');
+                const data = await response.json();
+                document.getElementById('itemCount').textContent = data.totalItems || 0;
+            } catch (error) {
+                console.error('Failed to update count:', error);
+            }
+        }
+        
+        // Load item count on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateItemCount();
+        });
+    </script>
+</body>
+</html>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .services-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .service-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .service-icon {
+            font-size: 3em;
+            margin-right: 15px;
+        }
+        
+        .service-title {
+            font-size: 1.5em;
+            color: #333;
+        }
+        
+        .service-url {
+            font-size: 0.9em;
+            color: #666;
+            word-break: break-all;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .response-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .response-box.show {
+            display: block;
+        }
+        
+        .response-box.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .response-box.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .response-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .response-content {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #555;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 8px 0;
+            color: #555;
+        }
+        
+        .info-box li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Microservices Communication Demo</h1>
+            <p>Running on Amazon EKS with Application Load Balancer</p>
+        </div>
+        
+        <div class="info-box">
+            <h3>📋 How It Works</h3>
+            <ul>
+                <li>Two Spring Boot microservices deployed on Amazon EKS</li>
+                <li>Services communicate with each other internally via Kubernetes DNS</li>
+                <li>External access through AWS Application Load Balancer (ALB)</li>
+                <li>Send messages between services and see real-time responses</li>
+                <li>Demonstrates bi-directional service-to-service communication</li>
+            </ul>
+        </div>
+        
+        <div class="services-container">
+            <!-- Client Service Card -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon">👤</div>
+                    <div>
+                        <div class="service-title">Client Service</div>
+                        <div class="service-url">Port 80</div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="clientMessage">Message to Hello Service:</label>
+                    <input type="text" id="clientMessage" placeholder="Type your message..." value="Hello from Client!">
+                </div>
+                
+                <button class="btn btn-primary" onclick="sendFromClient()">
+                    Send to Hello Service →
+                </button>
+                
+                <div id="clientResponse" class="response-box">
+                    <div class="response-title">Response:</div>
+                    <div class="response-content" id="clientResponseContent"></div>
+                </div>
+            </div>
+            
+            <!-- Hello Service Card -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon">👋</div>
+                    <div>
+                        <div class="service-title">Hello Service</div>
+                        <div class="service-url">Port 80</div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="helloMessage">Message to Client Service:</label>
+                    <input type="text" id="helloMessage" placeholder="Type your message..." value="Hello from Hello Service!">
+                </div>
+                
+                <button class="btn btn-secondary" onclick="sendFromHello()">
+                    Send to Client Service →
+                </button>
+                
+                <div id="helloResponse" class="response-box">
+                    <div class="response-title">Response:</div>
+                    <div class="response-content" id="helloResponseContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function sendFromClient() {
+            const message = document.getElementById('clientMessage').value;
+            const responseBox = document.getElementById('clientResponse');
+            const responseContent = document.getElementById('clientResponseContent');
+            
+            // Show loading
+            responseBox.className = 'response-box show';
+            responseContent.textContent = 'Sending message...';
+            
+            try {
+                const response = await fetch('/send-to-hello', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    responseBox.className = 'response-box show success';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    responseBox.className = 'response-box show error';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                responseBox.className = 'response-box show error';
+                responseContent.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function sendFromHello() {
+            const message = document.getElementById('helloMessage').value;
+            const responseBox = document.getElementById('helloResponse');
+            const responseContent = document.getElementById('helloResponseContent');
+            
+            // Show loading
+            responseBox.className = 'response-box show';
+            responseContent.textContent = 'Sending message...';
+            
+            try {
+                const response = await fetch('/hello/send-to-client', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    responseBox.className = 'response-box show success';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    responseBox.className = 'response-box show error';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                responseBox.className = 'response-box show error';
+                responseContent.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        // Auto-focus on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('clientMessage').focus();
+        });
+    </script>
+</body>
+</html>
